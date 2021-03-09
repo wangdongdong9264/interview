@@ -12,6 +12,37 @@
   `Promise.race()`
     方法返回一个 promise，一旦迭代器中的某个promise解决或拒绝，返回的 promise就会解决或拒绝
 
+new Promise发生了什么/过程
+
+  Promise的构造函数接收一个参数，是函数，并且传入两个参数：resolve，reject，分别表示异步操作执行成功后的回调函数和异步操作执行失败后的回调函数
+
+  ```js
+
+    var p = new Promise(function(resolve, reject){
+      //做一些异步操作
+      setTimeout(function(){
+        console.log('执行完成');
+        resolve('随便什么数据');
+      }, 2000);
+    });
+    // 上面的代码中，我们执行了一个异步操作，也就是setTimeout 2秒后，输出‘执行完了’，并且调用resolve方法
+
+    // 运行代码，会在2秒后输出“执行完成”。注意！我只是new了一个对象，并没有调用它，我们传进去的函数就已经执行了，这是需要注意的一个细节。所以我们用Promise的时候一般是包在一个函数中，在需要的时候去运行这个函数
+
+    function runAsync(){
+      var p = new Promise(function(resolve, reject){
+        //做一些异步操作
+        setTimeout(function(){
+            console.log('执行完成');
+            resolve('随便什么数据');
+        }, 2000);
+      });
+      return p;            
+    }
+    runAsync()
+  ```
+
+
 ## Async/Await 如何通过同步的方式实现异步
 
 Async/Await 是一个自执行的 generate 函数。利用 generate 函数的特性把异步的代码写成“同步”的形式

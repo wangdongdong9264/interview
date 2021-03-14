@@ -42,7 +42,6 @@ new Promise发生了什么/过程
     runAsync()
   ```
 
-
 ## Async/Await 如何通过同步的方式实现异步
 
 Async/Await 是一个自执行的 generate 函数。利用 generate 函数的特性把异步的代码写成“同步”的形式

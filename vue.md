@@ -32,3 +32,11 @@
   2. 子组件更新过程：父 beforeUpdate -> 子 beforeUpdate -> 子 updated -> 父 updated
   3. 父组件更新过程：父 beforeUpdate -> 父 updated
   4. 父 beforeDestroy -> 子 beforeDestroy -> 子 destroyed -> 父 destroyed
+
+## vue组件的几种写法
+
+1. Vue.extend
+2. Vue.component
+3. render
+
+## vue 架构

@@ -88,3 +88,67 @@ HTTP 的编码类型
   gzip 的原理，简单来说，就是会去扫描整个文本的字符串，找到一样的字符串，就只保留一个并分配一个标识，然后将其他相同的字符串使用这个标识替换，使整个文件变小。在还原的时候，只需要将每个标识代表的字符串，替换还原，就可以还原成最初的内容实体
 
   gzip 具体能压缩多少，完全取决于压缩的实体内容，内容文本中，包含越多相同的字符串，压缩率就越高，相反则越低。在理想状态下，gzip 的压缩率能高达 70%
+
+## http2 特点
+
+1. 二进制分帧
+2. 多路复用
+3. 头部压缩
+4. 请求优先级
+5. 服务端推送
+
+## jsonp 原理
+
+jsonp是一种跨域通信的手段，它的原理其实很简单
+
+1. 首先是利用script标签的src属性来实现跨域
+2. 通过将前端方法作为参数传递到服务器端，然后由服务器端注入参数之后再返回，实现服务器端向客户端通信
+3. 由于使用script标签的src属性，因此只支持get方法
+
+```js
+
+// 前端代码
+
+function jsonp(req){
+    var script = document.createElement('script');
+    var url = req.url + '?callback=' + req.callback.name;
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script); 
+}
+
+function hello(res){
+    alert('hello ' + res.data);
+}
+jsonp({
+    url : '',
+    callback : hello 
+});
+
+```
+
+```js
+// 服务端代码
+
+var http = require('http');
+var urllib = require('url');
+
+var port = 8080;
+var data = {'data':'world'};
+
+http.createServer(function(req,res){
+    var params = urllib.parse(req.url,true);
+    if(params.query.callback){
+        console.log(params.query.callback);
+        //jsonp
+        var str = params.query.callback + '(' + JSON.stringify(data) + ')';
+        res.end(str);
+    } else {
+        res.end();
+    }
+    
+}).listen(port,function(){
+    console.log('jsonp server is on');
+});
+
+
+```

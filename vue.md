@@ -8,6 +8,26 @@
   2. Object.defineProperty 只能劫持对象的属性，从而需要对每个对象，每个属性进行遍历。如果属性值是对象，还需要深度遍历。 Proxy 可以劫持整个对象， 并返回一个新的对象
   3. Proxy 不仅可以代理对象，还可以代理数组。还可以代理动态增加的属性
 
+## vue针对数组如何实现双向绑定
+
+Object.definePropert只能把对象属性改为getter/setter，而对于数组的方法就无能为力了，其内部巧妙的使用了数组的属性来实现了数据的双向绑定
+
+```js
+
+let obarr = [] // 需要监听的数组
+const arrayProto = Array.prototype 
+const arrayMethods = Object.create(arrayProto) // copy一份数组的原型方法， 防止污染原生方法
+Object.defineProperty(arrayMethods,'push',{
+    value:function mutator(){
+        console.log('obarr.push会走这里')
+    }
+}) //
+obarr.__proto__ = arrayMethods; // 使用arrayMethods覆盖obarr的所有方法
+
+```
+
+他的方法同理，我们只需要把所有需要实现的方法循环遍历执行即可
+
 ## 写 React / Vue 项目时为什么要在列表组件中写 key，其作用是什么
 
   vue 和 react 都是采用 diff 算法来对比新旧虚拟节点，从而更新节点。在 vue 的 diff 函数交叉对比中，当新节点跟旧节点头尾交叉对比没有结果时，会根据新节点的 key 去对比旧节点数组中的 key，从而找到相应旧节点（这里对应的是一个 key => index 的 map 映射）。如果没有找到就认为是一个新增节点。而如果没有 key，那么就会采用遍历查找的方式去找到对应的旧节点。一种一个 map 映射，另一种是遍历查找。相比而言，map 映射的速度更快。

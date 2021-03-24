@@ -32,6 +32,20 @@ obarr.__proto__ = arrayMethods; // 使用arrayMethods覆盖obarr的所有方法
 
   vue 和 react 都是采用 diff 算法来对比新旧虚拟节点，从而更新节点。在 vue 的 diff 函数交叉对比中，当新节点跟旧节点头尾交叉对比没有结果时，会根据新节点的 key 去对比旧节点数组中的 key，从而找到相应旧节点（这里对应的是一个 key => index 的 map 映射）。如果没有找到就认为是一个新增节点。而如果没有 key，那么就会采用遍历查找的方式去找到对应的旧节点。一种一个 map 映射，另一种是遍历查找。相比而言，map 映射的速度更快。
 
+## new Vue 以后发生的事情
+
+1. new Vue 会调用 Vue 原型链上的 _init 方法对 Vue 实例进行初始化；
+2. 首先是 initLifecycle 初始化生命周期，对 Vue 实例内部的一些属性（如 children、parent、isMounted）进行初始化；
+3. initEvents，初始化当前实例上的一些自定义事件（Vue.$on）；
+4. initRender，解析 slots 绑定在 Vue 实例上，绑定 createElement 方法在实例上；
+5. 完成对生命周期、自定义事件等一系列属性的初始化后，触发生命周期钩子 beforeCreate；
+6. initInjections，在初始化 data 和 props 之前完成依赖注入（类似于 React.Context）；
+7. initState，完成对 data 和 props 的初始化，同时对属性完成数据劫持内部，启用监听者对数据进行监听（更改）；
+8. initProvide，对依赖注入进行解析；
+9. 完成对数据（state 状态）的初始化后，触发生命周期钩子 created；
+10. 进入挂载阶段，将 vue 模板语法通过 vue-loader 解析成虚拟 DOM 树，虚拟 DOM 树与数据完成双向绑定，触发生命周期钩子 beforeMount；
+11. 将解析好的虚拟 DOM 树通过 vue 渲染成真实 DOM，触发生命周期钩子 mounted；
+
 ## 在 Vue 中，子组件为何不可以修改父组件传递的 Prop，如果修改了，Vue 是如何监控到属性的修改并给出警告的
 
   1. 因为 Vue 是单项数据流，易于检测数据的流动，出现了错误可以更加迅速的定位到错误发生的位置；
@@ -52,6 +66,12 @@ obarr.__proto__ = arrayMethods; // 使用arrayMethods覆盖obarr的所有方法
   2. 子组件更新过程：父 beforeUpdate -> 子 beforeUpdate -> 子 updated -> 父 updated
   3. 父组件更新过程：父 beforeUpdate -> 父 updated
   4. 父 beforeDestroy -> 子 beforeDestroy -> 子 destroyed -> 父 destroyed
+
+## vue-router 里的link标签和a标签有什么区别
+
+1. 有 onClick 则执行 OnClick；
+2. 阻止 a 标签默认事件（跳转页面）；
+3. 在取得跳转 href（to 属性值），用 history/hash 跳转，此时只是链接发现改变，并没有刷新页面；
 
 ## vue组件的几种写法
 

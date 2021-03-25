@@ -28,23 +28,21 @@ obarr.__proto__ = arrayMethods; // 使用arrayMethods覆盖obarr的所有方法
 
 他的方法同理，我们只需要把所有需要实现的方法循环遍历执行即可
 
+## 组件中的data为什么是函数
+
+为什么组件中的data必须是一个函数，然后return一个对象，而new Vue实例里，data可以直接是一个对象？
+
+因为组件是用来复用的，JS里对象是引用关系，这样作用域没有隔离，而new Vue的实例，是不会被复用的，因此不存在引用对象问题
+
+## v-for和v-if为什么不要一起使用，优先级如何
+
+当v-if与v-for一起使用时，v-for具有比v-if更高的优先级，这意味着 v-if 将分别重复运行于每个 v-for 循环中
+所以，不推荐v-if和v-for同时使用
+
+vue3.x版本中修改了优先级  v-if的优先级大于v-for
 ## 写 React / Vue 项目时为什么要在列表组件中写 key，其作用是什么
 
   vue 和 react 都是采用 diff 算法来对比新旧虚拟节点，从而更新节点。在 vue 的 diff 函数交叉对比中，当新节点跟旧节点头尾交叉对比没有结果时，会根据新节点的 key 去对比旧节点数组中的 key，从而找到相应旧节点（这里对应的是一个 key => index 的 map 映射）。如果没有找到就认为是一个新增节点。而如果没有 key，那么就会采用遍历查找的方式去找到对应的旧节点。一种一个 map 映射，另一种是遍历查找。相比而言，map 映射的速度更快。
-
-## new Vue 以后发生的事情
-
-1. new Vue 会调用 Vue 原型链上的 _init 方法对 Vue 实例进行初始化；
-2. 首先是 initLifecycle 初始化生命周期，对 Vue 实例内部的一些属性（如 children、parent、isMounted）进行初始化；
-3. initEvents，初始化当前实例上的一些自定义事件（Vue.$on）；
-4. initRender，解析 slots 绑定在 Vue 实例上，绑定 createElement 方法在实例上；
-5. 完成对生命周期、自定义事件等一系列属性的初始化后，触发生命周期钩子 beforeCreate；
-6. initInjections，在初始化 data 和 props 之前完成依赖注入（类似于 React.Context）；
-7. initState，完成对 data 和 props 的初始化，同时对属性完成数据劫持内部，启用监听者对数据进行监听（更改）；
-8. initProvide，对依赖注入进行解析；
-9. 完成对数据（state 状态）的初始化后，触发生命周期钩子 created；
-10. 进入挂载阶段，将 vue 模板语法通过 vue-loader 解析成虚拟 DOM 树，虚拟 DOM 树与数据完成双向绑定，触发生命周期钩子 beforeMount；
-11. 将解析好的虚拟 DOM 树通过 vue 渲染成真实 DOM，触发生命周期钩子 mounted；
 
 ## 在 Vue 中，子组件为何不可以修改父组件传递的 Prop，如果修改了，Vue 是如何监控到属性的修改并给出警告的
 
@@ -79,4 +77,20 @@ obarr.__proto__ = arrayMethods; // 使用arrayMethods覆盖obarr的所有方法
 2. Vue.component
 3. render
 
+## new Vue 以后发生的事情
+
+1. new Vue 会调用 Vue 原型链上的 _init 方法对 Vue 实例进行初始化；
+2. 首先是 initLifecycle 初始化生命周期，对 Vue 实例内部的一些属性（如 children、parent、isMounted）进行初始化；
+3. initEvents，初始化当前实例上的一些自定义事件（Vue.$on）；
+4. initRender，解析 slots 绑定在 Vue 实例上，绑定 createElement 方法在实例上；
+5. 完成对生命周期、自定义事件等一系列属性的初始化后，触发生命周期钩子 beforeCreate；
+6. initInjections，在初始化 data 和 props 之前完成依赖注入（类似于 React.Context）；
+7. initState，完成对 data 和 props 的初始化，同时对属性完成数据劫持内部，启用监听者对数据进行监听（更改）；
+8. initProvide，对依赖注入进行解析；
+9. 完成对数据（state 状态）的初始化后，触发生命周期钩子 created；
+10. 进入挂载阶段，将 vue 模板语法通过 vue-loader 解析成虚拟 DOM 树，虚拟 DOM 树与数据完成双向绑定，触发生命周期钩子 beforeMount；
+11. 将解析好的虚拟 DOM 树通过 vue 渲染成真实 DOM，触发生命周期钩子 mounted；
+
 ## vue 架构
+
+mvvm

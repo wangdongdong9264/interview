@@ -52,7 +52,17 @@ vue3.x版本中修改了优先级  v-if的优先级大于v-for
 
 ## provide/inject原理
 
-todo
+依赖注入，其核心原理就是通过$parent向上查找祖先组件中的provide，找到则赋值给对应的inject即可
+
+`inject、provide`的初始化时间在生命周期钩子函数beforeCreate之后，created之前
+
+`initInjections(vm)` 解析inject是在初始化data/props之前
+
+`resolveInject`函数，功能是通过$parent一层层向上查找祖先节点的数据，直到找到对应于inject的provide数据
+
+`initProvide(vm)` 解析provide是在初始化data/props之后
+
+这也符合数据初始化的一个处理逻辑
 
 ## 双向绑定和 vuex 是否冲突
 

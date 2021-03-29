@@ -137,3 +137,102 @@
     第二参数为数组的每一项
     第三个参数为数组的下标
     第四个参数为你要遍历的数组本身。第三和第四参数都是可选的
+
+## 对象遍历的方法总结
+
+### for in
+
+  最基础的遍历对象的方式，它还会得到对象原型链上的属性
+
+  ```js
+  // 以使用对象的 hasOwnProperty() 方法过滤掉原型链上的属性
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      console.log(obj[key]) // foo
+    }
+  }
+
+  ```
+
+### Object.keys
+
+  `Object.keys()` 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，会自动过滤掉原型链上的属性
+
+  ```js
+
+  Object.keys(obj).forEach((key) => {
+    console.log(obj[key]) // foo
+  })
+
+  ```
+
+  `Object.values()`方法返回一个给定对象自身的所有可枚举属性值的数组
+
+  `Object.entries()`方法返回一个给定对象自身可枚举属性的键值对数组
+
+  ```js
+
+  const obj = { foo: 'bar', baz: 42 };
+  console.log(Object.entries(obj)); // [ ['foo', 'bar'], ['baz', 42] ]
+
+  for (const [key, value] of Object.entries(obj)) {
+    console.log(`${key}: ${value}`);
+  }
+
+  ```
+
+### Object.getOwnPropertyNames
+
+  `Object.getOwnPropertyNames()`方法返回一个由指定对象的所有自身属性的属性名（包括不可枚举属性但不包括Symbol值作为名称的属性）组成的数组
+
+### Object.getOwnPropertySymbols
+
+  `Object.getOwnPropertySymbols()` 方法返回一个给定对象自身的所有 Symbol 属性的数组
+
+  ```js
+
+  // 给对象添加一个不可枚举的 Symbol 属性
+  Object.defineProperties(obj, {
+   [Symbol('baz')]: {
+    value: 'Symbol baz',
+    enumerable: false
+   }
+  })
+   
+  // 给对象添加一个可枚举的 Symbol 属性
+  obj[Symbol('foo')] = 'Symbol foo'
+   
+  Object.getOwnPropertySymbols(obj).forEach((key) => {
+   console.log(obj[key]) // Symbol baz, Symbol foo
+  })
+
+  ```
+
+### Reflect.ownKeys
+
+  [关于 Reflect](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect)
+
+  `Reflect.ownKeys()`静态方法返回一个由目标对象自身的属性键组成的数组
+
+  ```js
+  const object1 = {
+    property1: 42,
+    property2: 13
+  };
+
+  const array1 = [];
+
+  console.log(Reflect.ownKeys(object1));
+  // expected output: Array ["property1", "property2"]
+
+  console.log(Reflect.ownKeys(array1));
+  // expected output: Array ["length"]
+  ```
+
+| 遍历方式/支持特性      | 遍历sting属性 | 遍历Symbol属性  | 遍历不可枚举    | 遍历原型链    |
+| :---        |    :----:   |    :----:   |    :----:   |    :----:   |
+| `for...in`      | true       | false   | false     | true     |
+| `Object.key()`   | true        | false      | false     | false     |
+| `Object.getOwnPropertyNames()`   | true        | false      | true     | false     |
+| `Object.getOwnPropertySymbols()`   | false        | true      | true     | false     |
+| `Reflect.ownKeys()`   | true        | true      | true     | false     |

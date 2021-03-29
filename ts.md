@@ -1,4 +1,4 @@
-# typescrpt
+# typescript
 
 ## ts的基本数据类型
 
@@ -122,3 +122,30 @@ Pick
 implements关键字将类A当作一个接口，这意味着类C必须去实现定义在A中的所有方法，无论这些方法是否在类A中有没有默认的实现。同时，也不用在类C中定义super方法
 
 extends关键字本身所表达的意思一样，你只需要实现类A中定义的虚方法，并且关于super的调用也会有效
+
+## 什么是可索引类型接口
+
+  一般用来约束数组和对象
+
+  ```ts
+  // 数字索引——约束数组
+  // index 是随便取的名字，可以任意取名
+  // 只要 index 的类型是 number，那么值的类型必须是 string
+  interface StringArray {
+    // key 的类型为 number ，一般都代表是数组
+    // 限制 value 的类型为 string
+    [index:number]:string
+  }
+  let arr:StringArray = ['aaa','bbb'];
+  console.log(arr);
+
+
+  // 字符串索引——约束对象
+  // 只要 index 的类型是 string，那么值的类型必须是 string
+  interface StringObject {
+    // key 的类型为 string ，一般都代表是对象
+    // 限制 value 的类型为 string
+    [index:string]:string
+  }
+  let obj:StringObject = {name:'ccc'};
+  ```

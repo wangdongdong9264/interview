@@ -105,9 +105,182 @@ let strlength2: number = (<string>str).length;  //有兼容性问题
 
 ## 一些常用的工具泛型
 
-todo
+需要了解的关键字
 
-Pick
+`keyof`可以用来回取得一个对象接口的所有key值
+
+```ts
+
+interface Foo {
+  name: string;
+  age: number
+}
+type T = keyof Foo // -> "name" | "age"
+
+```
+
+`in`可以遍历枚举类型
+
+```ts
+
+ype Keys = "a" | "b"
+type Obj =  {
+  [p in Keys]: any
+} // -> { a: any, b: any }
+
+```
+
+`extends`用来约束类型
+
+```ts
+
+K extends keyof T
+// 应该是说K被约束在T的key中，不能超出这个范围
+
+```
+
+`infer`在条件类型语句中, 我们可以用 infer 声明一个类型变量并且对它进行使用
+
+### Partial
+
+  作用是将传入的属性变为可选项
+  
+  ```ts
+
+  type Partial<T> = { [p in keyof T]?: T[p] }
+
+  ```
+
+### Required
+
+  作用是将传入的属性变为必选项
+
+  ```ts
+  type Required<T> = { [p in keyof T]-?:T[p] }
+
+  ```
+
+  `-?` 这里很好理解就是将可选项代表的 ? 去掉, 从而让这个类型变成必选项. 与之对应的还有个`+?` , 这个含义自然与`-?`之前相反, 它是用来把属性变成可选项的
+
+### Readonly
+
+  将传入的属性变为只读选项
+
+  ```ts
+
+  type Readonly<T> = { readonly [ p in keyof T]: T[p] }
+
+  ```
+
+### Record
+
+  将 K 中所有的属性的值转化为 T 类型
+
+  ```ts
+
+  type Record<k extends keyof any, T> = { [p in k]: T}
+
+  // 例子
+  type petsGroup = 'dog' | 'cat' | 'fish';
+  interface IPetInfo {
+      name:string,
+      age:number,
+  }
+  type IPets = Record<petsGroup, IPetInfo>;
+  const animalsInfo:IPets = {
+      dog:{
+          name:'dogName',
+          age:2
+      },
+      cat:{
+          name:'catName',
+          age:3
+      },
+      fish:{
+          name:'fishName',
+          age:5
+      }
+  }
+
+  ```
+
+### Pick
+
+  从 T 中取出 一系列 K 的属性
+
+  ```ts
+
+  type Pick<T, K extends keyof T> = { [P in K]: T[P] }
+
+  // 原始类型
+  interface TState {
+    name: string;
+    age: number;
+    like: string[];
+  }
+  // 如果我只想要name和age怎么办，最粗暴的就是直接再定义一个（我之前就是这么搞得）
+  interface TSingleState {
+    name: string;
+    age: number;
+  }
+  // 这样的弊端是什么？就是在Tstate发生改变的时候，TSingleState并不会跟着一起改变，所以应该这么写
+  interface TSingleState extends Pick<TState, "name" | "age"> {};
+
+  ```
+
+### Exclude
+
+  从 T 中找出 U 中没有的元素, 换种更加贴近语义的说法其实就是从T 中排除 U
+
+  对于联合类型来说会自动分发条件，例如 `T extends U ? X : Y, T` 可能是 A | B 的联合类型, 那实际情况就变成`(A extends U ? X : Y) | (B extends U ? X : Y)`
+
+  ```ts
+
+  type Exclude<T, U> = T extends U ? never : T
+
+  // 例子
+  type T = Exclude<1 | 2, 1 | 3> // 2  
+
+  ```
+
+### Extract
+
+  作用是提取出 T 包含在 U 中的元素, 换种更加贴近语义的说法就是从 T 中提取出 U
+
+  ```ts
+
+  type Extract<T, U> = T extends U ? T : never
+
+  ```
+
+### 组合形式
+
+  Pick 和 Exclude 进行组合, 实现忽略对象某些属性功能
+
+  ```ts
+
+  type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
+
+  // 例子
+  type Foo = Omit<{name: string, age: number}, 'name'> // { age: number }
+
+  ```
+
+### ReturnType
+
+  用它获取函数的返回类型
+
+```ts
+
+type ReturnType<T> = T extends (...args: any[]) => infer P ? P : any;
+
+// 例子
+function foo(x: number): Array<number> {
+  return [x];
+}
+type fn = ReturnType<typeof foo>;
+
+```
 
 ## 用过 TypeScript 吗？它的作用是什么？
 

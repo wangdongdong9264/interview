@@ -391,3 +391,61 @@ js监听input输入框输入数据改变，用oninput， 数据改变后就会�
   可以看出，当`vnode.componentInstance`和`keepAlive`同时为true时，不再进入$mount过程，那mounted之前的所有钩子函数（beforeCreate、created、mounted）都不再执行
 
 ## $nextTick 原理及作用
+
+vue的`nextTick`其本质是对javascript执行原理 evenloop的一种应用
+
+nextTick的核心是利用如promise/MutationObserver/setImmediate/setTimeout的原生js方法来模拟宏/微任务的实现，本质是为了利用js的这些异步回调任务队列来实现vue框架中自己的异步回调队列
+
+nextTick不仅是vue内部异步队列的调用方法，同时也允许开发者在实际项目中使用这个方法来满足对dom更新数据后的逻辑处理
+
+nextTick是典型的将js执行原理应用到具体案例中的示例，引入异步更新队列机制的原因
+
+  1. 如果是同步更新，则多次对一个或多个属性赋值，会频繁触发ui/dom渲染，可以减少一些无用的渲染
+  2. 由于`VirtualDOM`的引用，每一次状态发生变化后，状态变化的信号会发送给组件，组件内部使用VirtualDOM进行计算得出具体需要更新的dom节点，然后对dom进行更新操作，每次更新状态后的渲染过程需要更多的计算，这种无用功也将浪费更多的性能，所以异步渲染变得更加重要
+
+nextTick的使用场景
+
+  1. 在数据变化后执行的某个操作，而这个操作需要数据变化而变化的dom结构的时候，这个操作就需要在nextTick的回调函数中
+  2. 在vue生命周期中，如果created钩子进行dom操作（因为在created钩子函数中，页面的DOM还未渲染，这时候也没办法操作DOM），也一定要放在nextTick的回调函数中
+
+## Vue 中给 data 中的对象属性添加一个新的属性时会发生什么？如何解决？
+
+ ```html
+  <template> 
+    <div>
+        <ul>
+          <li v-for="value in obj" :key="value"> {{value}} </li> 
+        </ul> 
+        <button @click="addObjB">添加 obj.b</button> 
+    </div>
+  </template>
+  <script>
+    export default { 
+      data () { 
+        return { 
+          obj: { 
+            a: 'obj.a' 
+          } 
+        } 
+      },
+      methods: { 
+        addObjB () { 
+          this.obj.b = 'obj.b' 
+          console.log(this.obj)
+        } 
+      }
+    }
+  </script>
+ ```
+
+点击 button 会发现，obj.b 已经成功添加，但是视图并未刷新。
+这是因为在Vue实例创建时，obj.b并未声明，因此就没有被Vue转换为响应式的属性，自然就不会触发视图的更新，这时就需要使用Vue的全局api `$set()`
+
+ ```js
+
+  addObjB () {
+    this.$set(this.obj, 'b', 'obj.b')
+    console.log(this.obj)
+  }
+
+ ```

@@ -478,3 +478,43 @@ vue实现响应响应式并不是数据发生改变后dom立即变化，而是�
 | 路由模式      | hash/history模式       | 普通链接跳转   |
 | 数据传递      | 一般vuex       | cookie/url参数   |
 | 开发成本      | 前期成本高，后期易于维护       | 前期开发成本低，后期维护难   |
+
+## 简述 mixins、extends 的覆盖逻辑
+
+`mixins`和`extends`均是用于合并，扩展组件的，两者均通过`mergeOptions`方法实现合并
+
+  `mixins`接收一个混合对象的数组，其中混入对象可以像正常的实例对象一样包含实例选项，这些选项会被合并到最终的选项中。mixin钩子按照传入的顺序依次调用，并在调用组件自身的钩子之前被调用
+
+  `extends`主要是为了便于扩展单文件组件，接收一个对象或构造函数
+
+  | 属性名称      | 合并策略 | 对应合并函数  |
+  | :---        |    :----:   |    :----:   |
+  | data      | mixins/extends只会将自己有但是组件上没有的内容混合到组件上<br>如果是对象，将递归内部对象按照该策略合并       | mergeDataOrFn/mergeData   |
+  | provide      | 同上       | 同上   |
+  | props      | mixins/extends只会将自己有但是组件上没有的内容混合到组件上       | extend   |
+  | methods      | 同上       | 同上   |
+  | inject      | 同上       | 同上   |
+  | inject      | 同上       | 同上   |
+  | computed      | 同上       | 同上   |
+  | 组件/过滤器/执行属性      | 同上       | 同上   |
+  | el      | 同上       | defaultStrat   |
+  | propsData      | 同上       | defaultStrat   |
+  | watch      | 合并watch监控的回调方法<br>执行顺序是先extends/mixins里watch定义的回调，然后是组件的回调       | strats.watch   |
+  | 生命周期hook      | 同一种钩子的回调函数会被合并成数组<br>执行顺序是先extends/mixins里定义钩子函数，然后才是组件定义的      | mergeHook   |
+
+`mergeOptions`的执行过程
+
+```js
+
+if(!child._base) {
+    if(child.extends) {
+        parent = mergeOptions(parent, child.extends, vm)
+    }
+    if(child.mixins) {
+        for(let i = 0, l = child.mixins.length; i < l; i++){
+            parent = mergeOptions(parent, child.mixins[i], vm)
+        }
+    }
+}
+
+```

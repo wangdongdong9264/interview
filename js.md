@@ -347,3 +347,107 @@ a. 也就是说 es6 class并不会像传统面向类一样在声明时静态复�
 
   总结：这样在模块外部无法修改我们没有暴露出来的变量、函数
   缺点：功能相对较弱，封装过程增加了工作量，仍会导致命名空间污染可能、闭包是有成本的
+
+## 数据类型检测的方式有哪些
+
+### typeof
+
+  ```js
+    console.log(typeof 2);               // number
+    console.log(typeof true);            // boolean
+    console.log(typeof 'str');           // string
+    console.log(typeof []);              // object    
+    console.log(typeof function(){});    // function
+    console.log(typeof {});              // object
+    console.log(typeof undefined);       // undefined
+    console.log(typeof null);            // object
+  ```
+
+  其中数组，对象，null都会被判断object 其它都正确
+
+### instanceof
+
+  ```js
+    console.log(2 instanceof Number);                    // false
+    console.log(true instanceof Boolean);                // false 
+    console.log('str' instanceof String);                // false 
+    
+    console.log([] instanceof Array);                    // true
+    console.log(function(){} instanceof Function);       // true
+    console.log({} instanceof Object);                   // true
+  ```
+
+  `instanceof`运算符用于检测构造函数的 prototype 属性是否出现在某个实例对象的原型链上
+
+   只能判断引用类型数据，而不能判断基本数据类型（字面量）
+
+  ```js
+    console.log(new Number(2) instanceof Number);                    // true
+    console.log(new Boolean(true) instanceof Boolean);               // true 
+    console.log(new String('str') instanceof String);                // true 
+  ```
+
+  字面值被实例化了，他们的判断值变为了 true
+
+  特殊的两个值`null`和`undefined`
+  
+  ```js
+    console.log(new null instanceof Null);  // null is not a constructor
+    console.log(new undefined instanceof Undefined);  // undefined is not a constructor
+  ```
+
+  浏览器认为null，undefined不是构造器。但是在typeof中你可能已经发现了，`typeof null`的结果是object，`typeof undefined`的结果是undefined
+  
+  尤其是null，其实这是js发展过程中设计者的重大失误，早期准备更改null的类型为null，由于当时已经有大量网站使用了null，如果更改，将导致很多网站的逻辑出现漏洞问题，就没有更改过来，于是一直遗留到现在
+
+### constructor
+
+  ```js
+
+  console.log((2).constructor === Number); // true
+  console.log((true).constructor === Boolean); // true
+  console.log(('str').constructor === String); // true
+  console.log(([]).constructor === Array); // true
+  console.log((function() {}).constructor === Function); // true
+  console.log(({}).constructor === Object); // true
+
+  ```
+
+  这里`constructor`有两个作用
+
+  1. 判断数据类型
+  2. 对象实例通过constructor对象访问它的构造函数
+
+  如果创建一个对象来改变它的原型，`constructor`就不能用来判断数据类型了
+
+  ```js
+
+    function Fn(){};
+    Fn.prototype = new Array();
+    var f = new Fn();
+    
+    console.log(f.constructor===Fn);    // false
+    console.log(f.constructor===Array); // true
+
+  ```
+  
+### Object.prototype.toString.call
+
+  使用object对象原型方法toString 判断类型
+
+  ```js
+    const a = Object.prototype.toString;
+    
+    console.log(a.call(2));             // [object Number]
+    console.log(a.call(true));          // [object Boolean]
+    console.log(a.call('str'));         // [object String]
+    console.log(a.call([]));            // [object Array]
+    console.log(a.call(function(){}));  // [object Function]
+    console.log(a.call({}));            // [object Undefined]
+    console.log(a.call(undefined));     // [object Undefined]
+    console.log(a.call(null));          // [object Null]
+  ```
+
+  同样是检测对象obj调用toString方法，`obj.toString()`的结果和`Object.prototype.toString.call(obj)`的结果不一样，这是为什么?
+
+  这是因toString为Object的原型方法，而Array。function等类型作为object的实例，都重写了toString方法。不同对象类型调用toString方法时会根据原型，调用的是对应重写之后的toString方法（function类型返回内容为函数体的字符串，Array类型返回元素组成的字符串...），而不会调用Object原型上的toString方法（返回对象的具体类型），所以`obj.toString()`不能得到其对象类型，只能将obj转换为字符串类型；因此，如果想要得到对象的具体类型时，应该调用Object原型上的toString方法

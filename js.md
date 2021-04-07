@@ -451,3 +451,18 @@ a. 也就是说 es6 class并不会像传统面向类一样在声明时静态复�
   同样是检测对象obj调用toString方法，`obj.toString()`的结果和`Object.prototype.toString.call(obj)`的结果不一样，这是为什么?
 
   这是因toString为Object的原型方法，而Array。function等类型作为object的实例，都重写了toString方法。不同对象类型调用toString方法时会根据原型，调用的是对应重写之后的toString方法（function类型返回内容为函数体的字符串，Array类型返回元素组成的字符串...），而不会调用Object原型上的toString方法（返回对象的具体类型），所以`obj.toString()`不能得到其对象类型，只能将obj转换为字符串类型；因此，如果想要得到对象的具体类型时，应该调用Object原型上的toString方法
+
+## 为什么0.1+0.2 ! == 0.3，如何让其相等
+
+对于这个问题直接的解决方法就是设置一个误差范围，通常称为`机器精度`。
+
+在es6中，提供了`Number.EPSILON`属性，只要判断`0.1 + 0.2 - 0.3`是否小于`Number.EPSILON`，如果小于，就可以判断`0.1+0.2 === 0.3`
+
+```js
+
+function numberepsilon(arg1,arg2){                   
+  return Math.abs(arg1 - arg2) < Number.EPSILON;        
+}        
+console.log(numberepsilon(0.1 + 0.2, 0.3)); // true
+
+```

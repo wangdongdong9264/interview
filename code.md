@@ -78,7 +78,7 @@ Function.prototype.bind2 = function(content) {
 ```js
 function _instanceof(L, R) { //L为instanceof左表达式，R为右表达式
   let Ro = R.prototype //原型
-  L = L.__proto__ //隐式原型
+  L = L.__proto__ //隐式原型 Object.getPrototypeOf(L)
   while (true) {
     if (L === null) { //当到达L原型链顶端还未匹配，返回false
       return false

@@ -117,4 +117,17 @@ vw适配（部分等比缩放）：
   ```
 
   使用 css 渐变linear-gradient或者box-shadow
-  
+
+## 骨架屏原理
+
+  骨架屏是在内容还没有出现之前的页面骨架填充，以免留白
+
+原理：
+
+  因为render生成的vNode，通过`$mount`方法，挂载在我们的定义的 DOM 元素上；这里的挂载是`替换`的意思。
+
+实现方案：
+
+1. 在`index.html`中的`div#app`中来实现骨架屏，程序渲染后就会替换掉index.html里面的`div#app`骨架屏内容
+2. 使用一个Base64的图片来作为骨架屏
+3. 在构建时使用 Vue 预渲染功能，将骨架屏组件的渲染结果 HTML 片段插入 HTML 页面模版的挂载点中，将样式内联到 head 标签中`vue-skeleton-webpack-plugin`

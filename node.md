@@ -39,4 +39,21 @@
 
 ## pm2原理
 
+众所周知，Node.js中的JavaScript代码执行在单线程中，非常脆弱，一旦出现了未捕获的异常，那么整个应用就会崩溃。
 
+通常的解决方案，便是使用Node.js中自带的`cluster`（集群）模块，以master-worker模式启动多个应用实例。
+
+问： 为什么我的应用代码中明明有`app.listen(port)`，但cluter模块在多次fork这份代码时，却没有报端口已被占用？
+
+答：`listen`函数会根据是不是主进程做不同的操作, 答案就在这个`cluster._getServer`函数的代码中。它主要干了两件事
+  
+  1. 向`master`进程组册该worker，若master进程是第一次接收到监听此端口/描述符下的worker，则起一个内部tcp服务，来承担监听该端口/描述符的职责，随后在master中记录该worker
+  2. `hack`掉worker进程中的`net.Server`实例的listen方法里监听端口/描述符的部分，使其不再承担该职责
+
+问：Master是如何将接收的请求传递至worker中进行处理然后响应的？
+
+答：负载均衡大概流程
+
+  1. 所有请求先统一经过内部tcp服务，真正监听端口的只有主进程
+  2. 在内部tcp服务器的请求处理逻辑中，由负载均衡选出一个worker进程，将其发送一个`newconn`的内部消息，消息发送客户端句柄
+  3. worker进程接收到`newconn`内部消息后，根据客户端句柄创建`net,Socket`实例，执行具体业务逻辑

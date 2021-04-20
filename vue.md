@@ -465,6 +465,30 @@ nextTick的使用场景
 
  ```
 
+## Vue template 到 render 的过程
+
+vue的模版编译过程主要如下： template 》ast 》 render函数
+
+vue在模版编译版本的代码中会执行`compileToFunctions`将template转换为render函数
+
+`compileToFunctions`主要逻辑：
+
+* 调用parse方法将template转换为ast树
+
+  解析过程： 利用正则表达式顺序解析模版，当解析到开始标签/闭合标签/文本的时候会分别执行对应的回调函数，来达到构建ast树的目的
+  
+  ast元素节点总共三种类型：type为1表示普通元素，2为表达式，3为纯文本
+
+* 对静态文件做出优化
+
+  这个过程主要分析哪些是静态节点，给其打个标记，为后续更新渲染可以直接跳过静态节点做优化
+
+  深度遍历ast，查看背个子树的节点元素是否为静态节点或者静态节点根。如果为静态节点，它们生成的dom永远不会改变，这对运行时模版更新起到了极大的优化作用
+
+* 生成代码
+
+  `generate`将抽象语法树编译成render字符串并将静态部分放到`staticRenderFns`中，最后通过`new Function(render)`生成render函数
+
 ## vue data中某个属性的值发生改变后，视图会立即同步执行重新渲染吗？
 
 不会立即执行同步重新渲染。

@@ -589,6 +589,12 @@ url地址显示：
 
 query更加类似于ajax中的get传参，params则类似于post（前者在浏览器地址栏中显示参数，后者显示）
 
+## vue-router跳转和location.href有什么区别
+
+1. `location.href = /xxx`来跳转，简单方便，但是刷新了页面
+2. `history.pushState(/xxxx)`, 无刷新页面，静态跳转
+3. 引入router使用history来跳转，使用了`diff`算法，实现了按需加载，减少dom消耗。其实使用router跳转和使用`history.pushState`没什么区别，因为vue-router就是用了pushState，尤其是在history模式下
+
 ## vuex的原理以及自己的理解
 
 vuex是一个专门为vue.js应用开发的状态管理模式。每一个vuex应用的核型就是store（仓库）。`store`基本上就是一个容器，它包含你的应用中大部分的状态（state）

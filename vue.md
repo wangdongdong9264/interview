@@ -588,3 +588,20 @@ query要用path来引用，params要用name来引入，接收参数都是类似�
 url地址显示：
 
 query更加类似于ajax中的get传参，params则类似于post（前者在浏览器地址栏中显示参数，后者显示）
+
+## vuex的原理以及自己的理解
+
+vuex是一个专门为vue.js应用开发的状态管理模式。每一个vuex应用的核型就是store（仓库）。`store`基本上就是一个容器，它包含你的应用中大部分的状态（state）
+
+* vuex的状态储存是响应式的，当vue组件从store中读取状态的时候，若store中的状态发生变化，那么相应的组件也会跟着变化
+* 改变store中的状态的唯一途径就是显示的提交（commit）`mutation`。这样使得我们可以方便的跟踪每一个状态的变化
+
+vuex核心流程中的主要功能：
+
+  1. `vue Components`: vue组件。html页面上，负责接收用户操作等交互行为，执行dispatch方法触发对应action进行回应
+  2. `dispatch`: 操作行为触发方法，是唯一能执行action的方法
+  3. `actions`: 操作行为处理模块，该模块提供了promise封装
+  4. `commit`: 状态改变提交的操作方法。对mutation进行提交，是唯一能执行mutation的方法
+  5. `mutations`: 状态改变操作方法。是vuex修改state的唯一方法，其它修改方式在严格模式下将会报错。该方法只能进行同步操作，且方法名只能全局唯一
+  6. `state`： 页面状态管理容器对象。
+  7. `getters`: state对象读取方法。

@@ -556,3 +556,35 @@ if(!child._base) {
 }
 
 ```
+
+## vue-router的懒加载如何实现
+
+1. 使用箭头函数 + import动态加载
+2. 使用箭头函数 + require动态加载
+3. 使用webpack的`require.ensure`技术，也可以实现按需加载。这种情况下，多个路由指定相同的chunkName，会合并打包成一个js文件
+
+```js
+  // r就是resolve
+const List = r => require.ensure([], () => r(require('@/components/list')), 'list');
+// 路由也是正常的写法  这种是官方推荐的写的 按模块划分懒加载 
+const router = new Router({
+  routes: [
+  {
+    path: '/list',
+    component: List,
+    name: 'list'
+  }
+ ]
+})
+
+```
+
+## params和query的区别
+
+用法：
+
+query要用path来引用，params要用name来引入，接收参数都是类似的，分别是`this.$route.query.name`和`this.$route.params.name`
+
+url地址显示：
+
+query更加类似于ajax中的get传参，params则类似于post（前者在浏览器地址栏中显示参数，后者显示）

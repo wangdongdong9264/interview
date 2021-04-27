@@ -199,3 +199,38 @@ http.createServer(function(req,res){
 
 
 ```
+
+## 对keep-alive的理解
+
+http1.0中默认是在每一次请求/应答，客户端和服务器都要新建一个连接，完成之后立即断开连接，这就是`短连接`。当使用`keep-alive`模式时，keep-alive功能使客户端到服务端的连接持续有效，当出现对服务器的后续请求时，keep-alive功能避免了建立或重新连接，这就是`长连接`
+
+* http1.0版本是默认没有`keep-alive`的（也就是默认会发送keep-alive），所以要想连接得到保持，必须手动配置发送`connection:keep-alive`字段。若想断开keep-alive连接，需要发送`connection:close`字段
+* http1.1规定了默认保持长连接，数据传输完成了保持tcp连接不断开，等待在同域名下继续用这个通道传输数据。如果需要关闭，需要客户端发送`connection:close`首部字段
+
+keep-alive的建立过程：
+
+1. 客户端向服务端在发送请求报文同时在首部添加发送connection字段
+2. 服务器收到请求并处理connection字段
+3. 服务端返回从connection:keep-alive字段给客户段
+4. 客户端接收到connection字段
+5. keep-alive连接建立成功
+
+服务端自动断开过程（也就是没有keep-alive）
+
+1. 客户端向服务端只是发送内容报文（不包含Connection字段）
+2. 服务端受到请求并处理
+3. 服务端饭后客户端请求的资源并关闭连接
+4. 客户端接收资源，发现没有Connection字段，则断开连接
+
+客户端请求断开连接过程：
+
+1. 客户端向服务端·发送`connection: close`字段
+2. 服务端受到请求并处理connection字段
+3. 服务端返回响应资源并断开连接
+4. 客户端接受到资源并断开连接
+
+开启keep-alive的优缺点：
+
+优点：keep-alive模式更加高效，因为避免了连接建立和释放的开销
+
+缺点：长时间的tcp连接容易导致系统资源无效占用，浪费系统资源

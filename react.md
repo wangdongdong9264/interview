@@ -49,3 +49,13 @@ react 15.x版本在渲染时，会递归对比虚拟dom树，找到需要变动�
 2. 给浏览器一点喘息的机会，它会对代码进行编译优化（jit）及进行热代码优化，或者对reflow进行修正
 
 核心思想：`fiber`也叫协程。它和线程并不一样，协程本身是没有并发或者并行能的（需要配合线程），它只是一种控制流程的让出机制。让出cpu的执行权，让cpu能在这段时间执行其它操作。渲染的过程可以被中断，可以将控制权交回给浏览器，让位给高优先级的任务，浏览器空闲后再恢复渲染
+
+## `React.Component`和`React.PureComponent`的区别
+
+PureComponent 表示一个纯组件，可以用来优化react程序，减少render函数执行的次数，从而提高组件性能
+
+react中，当props或state发生变化时，可以通过 shouldComponentUpdate 生命周期函数中执行return false来阻止页面更新，从而减少不必要的render执行。PureComponent会自动执行 shouldComponentUpdate 
+
+PureComponent 中的 `shouldComponentUpdate()`进行的是浅比较，也就是说如果是引用类型的数据，自会比较是不是同一地址，不会比较数据是否一致。浅比较会忽略属性和状态的突变情况，其实也就是指针没有变化，而数据发生改变的时候render是不会执行的。如果需要重新渲染那就需要重新开辟空间引用数据。PureComponent 一般会用在一些纯展示组件上
+
+使用 PureComponent 的好处: 当组件更新时，如果组件的props或者state都没有改变，render函数就不会触发。省去了虚拟dom的生成和对比过程，达到提升性能的目的。这是因为react自动做了一层浅比较

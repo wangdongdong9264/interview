@@ -181,6 +181,58 @@ Babel 的实现方式：
 
   首先将页面上的图片的 src 属性设为空字符串，而图片的真实路径则设置在 data-original 属性中，当页面滚动的时候需要去监听 scroll 事件，在 scroll 事件的回调中，判断我们的懒加载的图片是否进入可视区域，如果图片在可视区内则将图片的 src 属性设置为 data-original 的值，这样就可以实现延迟加载
 
+## 预加载
+
+预加载图片是提高用户体验的一个很好方法。图片预先加载到浏览器中，访问者便可顺利地在你的网站上冲浪，并享受到极快的加载速度。这对图片画廊及图片占据很大比例的网站来说十分有利，它保证了图片快速、无缝地发布，也可帮助用户在浏览你网站内容时获得更好的用户体验
+
+用CSS和JavaScript实现预加载:
+
+```css
+
+#preload-03 { background: url(http://domain.tld/image-03.png) no-repeat -9999px -9999px; }
+
+```
+
+```js
+
+document.getElementById("preload-01").style.background = "url(http://domain.tld/image-01.png) no-repeat -9999px -9999px";
+
+```
+
+仅使用JavaScript实现预加载:
+
+```js
+
+var images = new Array()
+function preload() {
+    for (i = 0; i < preload.arguments.length; i++) {
+        images[i] = new Image()
+        images[i].src = preload.arguments[i]
+    }
+}
+preload(
+    "http://domain.tld/gallery/image-001.jpg",
+    "http://domain.tld/gallery/image-002.jpg",
+    "http://domain.tld/gallery/image-003.jpg"
+)
+
+```
+
+使用Ajax实现预加载:
+
+```js
+
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'http://domain.tld/preload.js');
+xhr.send('');
+xhr = new XMLHttpRequest();
+xhr.open('GET', 'http://domain.tld/preload.css');
+xhr.send('');
+// preload image
+new Image().src = "http://domain.tld/preload.png";
+
+```
+
 ## this
 
 this 是和执行上下文绑定的

@@ -59,3 +59,7 @@ react中，当props或state发生变化时，可以通过 shouldComponentUpdate 
 PureComponent 中的 `shouldComponentUpdate()`进行的是浅比较，也就是说如果是引用类型的数据，自会比较是不是同一地址，不会比较数据是否一致。浅比较会忽略属性和状态的突变情况，其实也就是指针没有变化，而数据发生改变的时候render是不会执行的。如果需要重新渲染那就需要重新开辟空间引用数据。PureComponent 一般会用在一些纯展示组件上
 
 使用 PureComponent 的好处: 当组件更新时，如果组件的props或者state都没有改变，render函数就不会触发。省去了虚拟dom的生成和对比过程，达到提升性能的目的。这是因为react自动做了一层浅比较
+
+## 这是一个测试
+
+测试test

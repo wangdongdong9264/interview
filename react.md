@@ -72,3 +72,34 @@ PureComponent 中的 `shouldComponentUpdate()`进行的是浅比较，也就是�
 类组件（class component）有实例`instance`, 但是永远也不需要直接创建一个组件的实例，应为react帮我们做了这些
 
 ## React.createClass和extends Component的区别有哪些？
+
+主要区别:
+
+（1）语法区别
+
+* createClass本质上是一个工厂函数，extends的方式更加接近新的es6规范class写法。两种方式在语法上的差别主要体现在方法的定义和静态属性的声明上。
+
+* createClass方式的方法定义使用逗号，隔开，因为creatClasss本质上是一个函数，传递给它的是个object; 而class的方式定义方法时务必谨记不要使用都逗号隔开，这是es6 class的语法规范。
+
+（2）propType和getDefaultProps
+
+* React.createClass：通过propTypes对象和getDefaultProps()方法来设置和获取props
+
+* React.Component: 通过设置两个属性propTypes和defaultProps
+
+（3）状态的区别
+
+* React.createClass: 通过getInitialState()方法返回一个包含初始值的对象
+* React.Component： 通过constructor设置初始状态
+
+（4）this区别
+
+* React.createClass: 会正确绑定this
+* React.Component: 由于使用了es6， 这里会有些不同，属性并不会自动绑定到React类的实例上
+
+（5）Mixins
+
+* React.createClass: 使用React.createClass的话，可以在创建组件时添加一个叫做mixins的属性，并将可混合的类的集合以数组的形式赋给mixins
+* 如果使用es6的方式来创建组件，那么`react mixins`的特性将不能被使用
+
+## react高阶组件是什么，和普通组件有什么区别，适用什么场景

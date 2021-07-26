@@ -103,3 +103,85 @@ PureComponent 中的 `shouldComponentUpdate()`进行的是浅比较，也就是�
 * 如果使用es6的方式来创建组件，那么`react mixins`的特性将不能被使用
 
 ## react高阶组件是什么，和普通组件有什么区别，适用什么场景
+
+官方解释:
+
+  高阶组件（HOC）是react中用与复用组件逻辑的一种高级技巧。HOC自身不是react api的一部分，它是一种基于react的组合特性而形成的设计模式
+
+高阶组件（HOC）就是一个函数，该函数接手一个组件作为参数，并返回一个新的组件，它只是一种组件的设计模式，这种设计模式是由react自身的组合性质必然产生的。我们将它们称为纯组件，因为它们可以接受任何动态提供的子组件，
+但它们不会修改或复制其输入组件中的任何行为
+
+```js
+
+// hoc的定义
+function withSubscription(WrappedComponent, selectData) {
+  return class extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        data: selectData(DataSource, props)
+      };
+    }
+    // 一些通用的逻辑处理
+    render() {
+      // ... 并使用新数据渲染被包装的组件!
+      return <WrappedComponent data={this.state.data} {...this.props} />;
+    }
+  };
+
+// 使用
+const BlogPostWithSubscription = withSubscription(BlogPost, (DataSource, props) => DataSource.getBlogPost(props.id));
+
+```
+
+HOC的优缺点
+
+  优点：逻辑复用，不影响被包裹组件的内部逻辑
+  缺点：HOC传递给包裹组件的props容易和被包裹后的组件重名，进而被覆盖
+
+适用场景
+
+  * 代码服复用，逻辑抽象
+  * 渲染劫持
+  * state 抽象和更改
+  * Props 更改
+
+具体应用
+  
+1. 权限控制：利用高阶组件的`条件渲染`特性可以对页面进行权限控制，权限控制一般分为两个维度：页面级别和页面元素级别
+
+2. 组件渲染性能追踪：借助父子组件
+生命周期规则捕获子组件的生命周期，可以方便的对某个组件的渲染时间进行记录
+
+3. 页面复用
+
+## 对componentWillReceiveProps的理解
+
+该方法当`props`发生变变化时执行，初始化`render`时不执行，在这个回调函数里面，你可以根据属性的变化，通过调用`this.setState()`来更新你的组件状态，旧的属性还是可以通过`this.props`来获取，这里调用更新状态是安全的，并不会触发额外的`render`调用
+
+使用好处：在这个生命周期中，可以在子组件的render函数执行前获获取新的props，从而更新子组件自己的state。可以将数据请求放在这里进行执行，需要传的参数则从`componentWillReceiveProps(nextProps)`中获取。而不必将所有的请求都放在父组件中。于是该请求只会在该组件渲染时才会发出，从而减轻请求负担。
+
+`componentWillReceiveProps`在初始化render的时候不会执行，它回在Component接受到新的状态（Props）时被触发，一般用于父组件状态更新时子组件的重新渲染
+
+## 哪些方法会触发React重新渲染？重新渲染render会做些什么
+
+（1）哪些方法会触发react重新渲染
+
+`setState()`方法被调用
+
+  setState是react中最常用的命令，通常情况下，执行setState会触发render。但是这里有个点值得关注，执行setState的时候不一定会重新渲染。当setState传入null时，并不会触发render
+
+父组件重新渲染
+
+只要父组件重新渲染了，即使转入子组件的props未发生变化，那么子组件也会重新渲染，进而触发render
+
+
+（2）重新渲染render会做些什么？
+
+  * 会对新旧VNode进行对比，也就是我们所说的DiffDiff算法
+  * 对新旧两棵树进行一个深度优先遍历，这样每个节点都会有一个标记，在到深度遍历的时候，每遍历到一个节点，就把该节点和新节点树进行对比，如果有差异就放到一个对象里面
+  * 遍历差异对象，根据差异的类型，对应规则更新VNode
+
+react 的处理render的基本思维模式是每一次有变动就会去重新渲染整个应用。在`Virtual DOM`没有出现之前，最简单的方式就是直接调用`innerHTML`。Virtual Dom厉害的地方并不是说它不直接操作dom快，而是说不管数据怎么变，都会尽量以最小的代价去更新DOM。React将render函数返回的虚拟dom树与老的向比较，从而确定dom要不要更新，怎么更新。当dom树很大时，遍历两颗树进行各种比对还是相当消耗性能的，特别时在顶层setState一个微小的修改，默认会去遍历整个树。尽管React使用高度优化的`Diff`，但是这个过程仍然损耗性能
+
+## react如何判断什么时候重新渲染组件？

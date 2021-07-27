@@ -185,3 +185,42 @@ HOC的优缺点
 react 的处理render的基本思维模式是每一次有变动就会去重新渲染整个应用。在`Virtual DOM`没有出现之前，最简单的方式就是直接调用`innerHTML`。Virtual Dom厉害的地方并不是说它不直接操作dom快，而是说不管数据怎么变，都会尽量以最小的代价去更新DOM。React将render函数返回的虚拟dom树与老的向比较，从而确定dom要不要更新，怎么更新。当dom树很大时，遍历两颗树进行各种比对还是相当消耗性能的，特别时在顶层setState一个微小的修改，默认会去遍历整个树。尽管React使用高度优化的`Diff`，但是这个过程仍然损耗性能
 
 ## react如何判断什么时候重新渲染组件？
+
+组件状态的改变可以因为`props`的改变, 或者直接通过`setState`方法改变。组件获得新的状态，然后react决定是否应该重新渲染组件。只要组件的state发生变化，React就会对组件进行重新渲染。这是因为React中的`shouldComponentUpdate`方法默认返回`true`, 这就是导致每次更新都重新渲染的原因。
+
+当React将要渲染组件实回执行`shouldComponentUpdate`方法来看它是否返回true（组件应该更新，也就是重新渲染）。所以需要重写`shouldComponentUpdate`方法让它根据情况返回`true`或者`false`来告诉react什么时候重新渲染什么时候跳过重新渲染
+
+## react生声明组件有哪几种方法，有什么不同？
+
+React 声明组件的三种方式：
+
+1. 函数式定义的`无状态组件`
+2. es5原生方式`React.createClass`定义的组件
+3. es6形式的 `extends React.Component`
+
+`无状态函数式组件`它是为了创建存展示组件，这种组件只负责根据传入的Props来展示，不涉及到state状态的操作 组件不会被实例化，整体渲染性能的到提升，不能访问this对象, 不能访问声明周期的方法
+
+`es5原生方式 React.createClass` （RFC） 会自绑定函数方法，导致不必要的性能开销，增加代码过时的可能性。
+
+`es6形式的 React.Component` （RCC）目前极为推荐的创建有状态组件的方式，最终取代React.createClass形式；相对于 React.createClass 可以更好实现代码复用
+
+无状态组件相对于后者的区别：与无状态组件相比，`React.createClass`和`React.Component`都是创建有状态的组件，这些组件是要被实例化的，并且可以访问组件的生命周期方法
+
+React.createClass与React.Component区别:
+  函数this自绑定
+    
+    React.createClass创建的组件,其每一个成员函数的this都有react自动绑定，函数中的this会被正确设置。
+    
+    React.Component创建的组件,其成员函数不会自动绑定this, 需要开发者手动绑定，否则this不能获取当前组件实例对象
+
+  组件属性类型propTypes及其默认porps属性defaultProps配置不同
+
+    React.createClass在创建组件时，有关组件props的属性类型及组件默认的属性会作为组件实例的属性来配置，其中defaultProps的方法来获取默认组件属性的
+
+    React.Component在创建组件时，配置这两个对信息时，它们时是作为组件类的属性，不是组件实例的属性，也就是所谓的类的静态属性来配置的
+
+  组件初始状态state的配置不同
+
+    React.createClass在创建组件时, 其状态state是通过getInitialState方法来配置组件相关的状态;
+
+    React.Component在创建组件时，其状态state是在constructor中像初始化组件属性一样声明的

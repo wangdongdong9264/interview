@@ -224,3 +224,116 @@ React.createClass与React.Component区别:
     React.createClass在创建组件时, 其状态state是通过getInitialState方法来配置组件相关的状态;
 
     React.Component在创建组件时，其状态state是在constructor中像初始化组件属性一样声明的
+
+## 对有状态组件和无状态组件的理解及使用场景
+
+有状态组件
+
+特点：
+
+  1. 是类组件
+  2. 有继承
+  3. 可以使用this
+  4. 可以使用react的生命周期
+  5. 使用较多，容易频繁触发生命周期钩子函数，影响性能
+  6. 内容使用state，维护自身状态的变化，有状态组件根据外部组件传入的props和自身的state进行渲染
+
+使用场景：
+
+  1. 需要使用到状态
+  2. 需要使用状态操作的（无状态组件的也可以实现新版本react hooks也可以实现）
+
+总结：类组件可以维护自身的状态变量，即组件的state，类组件还有不同的生命周期方法，可以让开发者能够在组件的不同阶段（挂载，更新，卸载），对组件做更多的控制。类组件则即可以充当无状态组件，也可以充当有状态组件。当一个类组件不需要管理自身状态时，也可称未无状态组件
+
+---
+
+无状态组件
+
+特点：
+
+  1. 不依赖自身的状态state
+  2. 可以时类组件或者函数组件
+  3. 可以完全避免使用this关键字。（由于使用的是箭头函数事件无需绑定）
+  4. 有更高的性能。当不需要使用生命周期钩子时，应该首先使用无状态函数组件
+  5. 组件内部不维护state，根据外部组件传入的props进行渲染的组件，当props改变时，组件重新渲染
+
+使用场景：
+
+  1. 组件不需要管理state，纯展示
+
+优点：
+
+  1. 简化代码，专注render
+  2. 组件不需要被实例化，无生命周期，提升性能。输出（渲染）只取决于输入（属性），无副作用
+  3. 视图和数据的解耦分离
+
+缺点： 
+
+  1. 无法使用ref
+  2. 无生命周期方法
+  3. 无法控制组件的重渲染，因为无法使用`shouldComponentUpdate`方法，当组件接受到新的属性时则会重渲染
+
+总结： 组件内部状态与外部无关的组件，可以考虑用状态组件，这样状态就不会过于复杂，易于理解和管理。当一个组件不需要管理自身状态时，也就是无状态组件, 应该优先设计为函数组件。比如自定义的`<Button/>`, `<Input/>`等组件。
+
+## 对React中Fragment的理解，它的使用场景是什么
+
+在React中，组件返回的元素只能有一个跟元素。为了不添加多余的DOM节点，我们可以使用`Fragment`标签来包裹所有的元素，Fragment标签不会渲染出任何元素。react官方对Fragment的解释
+
+  react中的一个常见模式是一个组件返回多个元素。`Fragment`允许你将子列表分租，而无需向DOM添加额外的节点
+
+```js
+
+import React, { Component, Fragment } from 'react'
+
+// 一般形式
+render() {
+  return (
+    <React.Fragment>
+      <ChildA />
+      <ChildB />
+      <ChildC />
+    </React.Fragment>
+  );
+}
+// 也可以写成以下形式
+render() {
+  return (
+    <>
+      <ChildA />
+      <ChildB />
+      <ChildC />
+    </>
+  );
+}
+
+
+```
+
+## 如何获取组件对应的dom元素？
+
+可以用ref来获取某个子节点的实例，然后通过当前class组件实例的一些特定属性来直接获取子节点实例。ref有三种实现方法：
+
+  1. 字符串格式：字符串格式，这是React16版本之前用的最多， 例如`<p ref="info">span</p>`
+  2. 函数格式： ref对应一个方法，该方法有一个参数，也就是对应的节点实例`<p ref={ele => this.info = ele}></p>`
+  3. createRef方法：React 16提供的一个api，使用`React.createRef()`来实现
+
+## React中可以在render访问refs吗？ 为什么？
+
+```html
+
+<>
+  <span id="name" ref={this.spanRef}>{this.state.title}</span>
+  <span>{
+     this.spanRef.current ? '有值' : '无值'
+  }</span>
+</>
+
+```
+
+不可以,render阶段DOM还没有生成，无法获取DOM。DOM的获取需要在`pre-commit`阶段和`commit`阶段`
+
+`render`阶段：纯净且不包含副作用。可能会被react暂停，中止或重新启动
+
+`pre-commit`阶段：可以读取dom
+
+`commit`阶段：可以使用dom，运行副作用，安排更新

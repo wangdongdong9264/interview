@@ -337,3 +337,91 @@ render() {
 `pre-commit`阶段：可以读取dom
 
 `commit`阶段：可以使用dom，运行副作用，安排更新
+
+## 对react的插槽（Portals）的理解，如何使用，有哪些使用场景
+
+React官方对Portals的定义：
+
+  Portal提供了一种子节点渲染到存在于父组件以外的DOM节点的优秀的方案
+
+`Portals`是React 16提供的官方解决方案, 使得组件可以脱离父组件层级挂载在dom树的任何位置。通俗来讲，就是我们render一个组件，但这个组件的DOM结构并不在本组件内
+
+`Portals`语法如下：
+
+```js
+
+ReactDOM.createPortal(child, container)
+
+// 第一个参数child是可渲染的React子项，比如元素，字符串或者片段等
+// 第二个参数container是一个DOM元素
+
+```
+
+一般情况下，组件的render函数返回的元素会被挂载在它的父级组件上：
+
+```js
+import DemoComponent from './DemoComponent';
+render() {
+  // DemoComponent元素会被挂载在id为parent的div的元素上
+  return (
+    <div id="parent">
+        <DemoComponent />
+    </div>
+  );
+}
+
+```
+
+然而有些元素需要挂载再更高层级的位置。最经典的应用场景: 当父级组件具有`overflow：hidden`或者`z-index`的样式设置时，组件有可能被其他元素遮挡，这时就可以考虑要不要使用`Portals`使组件的挂载脱离父组件。例如：对话框，模态窗
+
+```js
+
+import DemoComponent from './DemoComponent';
+render() {
+  // DemoComponent元素会被挂载在id为parent的div的元素上
+  return (
+    <div id="parent">
+        <DemoComponent />
+    </div>
+  );
+}
+
+```
+
+## 再React中如何避免不必要的render?
+
+React 基于虚拟dom和高效Diff算法的完美配合, 实现了对dom最小颗粒度的更新。大多数情况下，React对DOM的渲染效率足以业务日常。但在个别复杂业务场景下，性能问题依然会困扰我们。此时就需要采取一些措施来提升运行性能，其很重要的一个方向，就是避免不必要的渲染（Render）。这是提下优化的点
+
+`shouldComponentUpdate`和`PureComponent`
+
+  在react类组件中，可以利用`shouldComponentUpdate`或者`PureComponent`来减少因父组件更新而触发子组件的render，从而达到目的。`shouldComponentUpdate`来决定是否重新渲染，如果不希望组件重新渲染，返回false即可
+
+利用高阶组件
+
+  在函数组件库中，并没有`shouldComponentUpdate`这个生命周期，可以利用高阶组件，封装一个类似`PureComponent`的功能
+
+使用`React.memo`
+
+React.memo是React 16.6新增的一个api，用来缓存组件的渲染，避免不必要的更新，其实也是一个高阶组件，与`PureComponent`十分类似，但是不同的是，React.memo只能用于函数组件
+
+## 对React-Intl的理解，它的工作原理？
+
+`React-Intl`是雅虎的语言国际化开源项目FormatJS的一部分，通过其提供的组件和api可以与ReactJS绑定
+
+`React-Intl`提供了两种使用方法，一种是引入React组件，另一种是直接调取api，官方更加推荐在react项目中使用前者，只有无法使用React组件的地方，才应该调用框架提供api。它提供了一系列的React组件，包括数字格式化，字符串格式化，日期格式化等。
+
+在`React-Intl`中，可以配置不同的语言包，他的工作原理就是根据需要，在语言包之间进行切换。
+
+## 对React context的理解
+
+在React中，数据传递一般使用`props`传递数据，维持单项数据流，这样可以让组件之间的关系变得简单且可预测，但是单向数据流在某些场景中并不适用。单纯一对的父子传递并无问题，但要是组件之间层层依赖深入，props就需要层层传递，显然这样太繁琐
+
+`Context`提供了一种在组件之间共享此类值的方式，而不必显式的通过组件树的逐层传递给props
+
+可以把`context`当作是一个特定的组件树内共享的store，用来做数据传递。简单来说就是，当你不想在组件树中通过逐层传递props或者state的方式来传递数据时，可以使用Context来实现跨层级的组件数据传递。
+
+js的代码块在执行期间，会创建一个相应的作用域链，这个作用域链纪录着代码块执行期间所能访问的活动对象，包括变量和函数，js程序通过作用域访问到代码块内部或者外部的变量和函数。
+
+假设以js的作用域作为类比，React组件提供的Context对象其实就好比一个提供给子组件访问的作用域，而Context对象属性可以看成作用域上的活动对象。由于组件的Context由其父节点链上所有组件通过`getChildContext()` 返回Context对象组合而成，所以，组件通过Context是可以访问到其父组件链上所有节点组件提供的Context的属性。
+
+## 为什么React并不推荐优先考虑使用Context?

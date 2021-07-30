@@ -425,3 +425,142 @@ js的代码块在执行期间，会创建一个相应的作用域链，这个作
 假设以js的作用域作为类比，React组件提供的Context对象其实就好比一个提供给子组件访问的作用域，而Context对象属性可以看成作用域上的活动对象。由于组件的Context由其父节点链上所有组件通过`getChildContext()` 返回Context对象组合而成，所以，组件通过Context是可以访问到其父组件链上所有节点组件提供的Context的属性。
 
 ## 为什么React并不推荐优先考虑使用Context?
+
+1. Context目前还处于实验阶段，可能会在后面的发行版本中有很大变化，事实上这种情况已经发生了，所以为了避免给今后升级带来大的影响和麻烦，不建议在app中使用Context。
+
+2. 尽管不建议在app中使用Context, 但是独有组件而言，由于影响范围小于app，如果可以做到高内聚，不破坏组件树之间的以来关系，可以考虑使用Context
+
+3. 对于组之间的数据通讯或者状态管理，有效使用props或者state解决，然后再考虑使用第三方成熟库进行解决，以上的方法都不是最佳的方案的时候，在考虑Context
+
+4. Context的更新需要通过`setState()`触发，但是这并不是很可靠的，Context支持跨组件的访问，但是如果中间的子组件通过一些方法不影响更新，比如`shouldComponentUpdate()`返回`false`那么不能保证Context的更新一定可以使用Context的子组件，因此，Context的可靠性需要关注
+
+## React中什么是受控组件和非控组件
+
+`受控组件`在使用表单来收集用户输入时，例如`<input>`,`<select>`,`<textearea>`等元素都要绑定一个change事件，当表单的状态发生变化，就会触发`onChange`事件，更新组件的state。这种组件在React中被称为`受控组件`，在受控组件中，渲染出来的状态与它的value或checked属性想对应，react通过这种方式消除了组件的局部状态，使整个状态可控。react官方推荐使用受控表单组件。
+
+受控组件更新state的流程：
+
+  1. 可以通过初始state中设置表单的默认值
+  2. 每当表单的值发生变化时，调用onChange事件处理器
+  3. 事件处理器通过事件对象e拿到改变后的状态，并更新组件的state
+  4. 一旦通过setState方法更新state，就会触发视图的重新渲染，完成表单组件的更新
+
+受控组件的缺点：
+
+  表单元素的值都是由react组件进行管理，当有多个输入框，或则多个这种组件时，如果想同时获取到全部的值就必须每个都要编写事件处理函数，这会让代码看着臃肿，所以为了解决这种情况，出现了`非受控组件`
+
+`非受控组件`如果一个表单组件没有value props（单/多选按钮对应的时 checked props）时，就可以称为非受控组件。在非受控组件中，可以使用一个`ref`来从DOM获得表单值。而不是为了每个状态更新编写一个事件处理程序。
+
+React官方的解释：
+
+  要编写一个非受控组件，而不是为了每个状态更新都编写数据处理函数，你可以使用ref来DOM节点中获取表单数据。因为非受控组件将真实数据存储在DO节点中，所以在使用非受控组件时，有时候反而更容易集成React和非React代码。如果你不建议代码的美观性，并且希望快速编写代码，使用非受控代码往往可以减少你的代码量。否则，你应该使用受控组件
+
+```js
+
+// 例如 代码在非受控组件中接收单个属性
+
+class NameForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  handleSubmit(event) {
+    alert('A name was submitted: ' + this.input.value);
+    event.preventDefault();
+  }
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Name:
+          <input type="text" ref={(input) => this.input = input} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+
+```
+
+总结: 页面中所有输入类的DOM如果是现用现取的称为非受控组件，而通过setState将输入的值维护到了state中，需要时再从state中取出，这里的数据就受到了state的控制，称为受控组件。
+
+## react中refs的作用是什么？有哪些应用场景？
+
+Refs提供了一种方式，用于访问在`render`方法中创建的react元素或DOM节点。refs应该谨慎使用，如下场景使用Refs比较合适:
+
+  1. 处理焦点，文本选择或则媒体的控制
+  2. 触发必要的动画
+  3. 集成第三方DOM库
+
+`Refs`是使用`React.createRef()`方法创建的， 它通过`ref`属性附加到react元素上。要在整个组件中使用refs，需要将ref在构造函数中分配给实例属性
+
+```js
+
+class MyComponent extends React.Component {
+  constructor(props) {
+    super(props)
+    this.myRef = React.createRef()
+  }
+  render() {
+    return <div ref={this.myRef} />
+  }
+}
+
+```
+
+由于函数组件没有实例，因此不能再函数组件上直接使用`ref`：
+
+```js
+
+function MyFunctionalComponent() {
+  return <input />;
+}
+class Parent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.textInput = React.createRef();
+  }
+  render() {
+    // 这将不会工作！
+    return (
+      <MyFunctionalComponent ref={this.textInput} />
+    );
+  }
+}
+
+```
+
+但可以通过闭合的帮助再函数租几间内部进行使用`refs`:
+
+```js
+
+function CustomTextInput(props) {
+  // 这里必须声明 textInput，这样 ref 回调才可以引用它
+  let textInput = null;
+  function handleClick() {
+    textInput.focus();
+  }
+  return (
+    <div>
+      <input
+        type="text"
+        ref={(input) => { textInput = input; }} />
+      <input
+        type="button"
+        value="Focus the text input"
+        onClick={handleClick}
+      />
+    </div>
+  );  
+}
+
+```
+
+注意：
+
+  1. 不应该过度使用refs
+  2. `ref`的返回值取决于节点的类型：
+    * 当`ref`属性被用于一个普通html元素时，`React.createRef()`将接收底层DOM元素为它的`current`属性以创建`ref`
+    * 当`ref`属性被用于一个自定义的类组件时，`ref`对象将接受该组件已挂载的实例作为它的`current`。
+  3. 当再父组件中需要访问子组件中的ref时可以使用传递Refs或则回调Refs。

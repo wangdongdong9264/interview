@@ -985,3 +985,238 @@ Greeting.propTypes = {
 当然，如果项目汇中使用了`TypeScript`，那么就可以不用PropTypes来校验，而使用TypeScript定义接口来校验props。
 
 ## React的生命周期有哪些？
+
+React 通常将组件生命周期分为三个阶段：
+
+1. 装载阶段`Mount`，组件第一次在DOM树中被渲染的过程；
+2. 更新过程`Update`，组件状态发生变化，重新更新渲染的过程；
+3. 卸载过程`Unmount`，组件从DOM树中被移除的过程；
+
+### 组件挂载阶段
+
+挂载阶段组件被创建，然后组件实例插入到 DOM 中，完成组件的第一次渲染，该过程只会发生一次，在此阶段会依次调用以下这些方法：
+
+* constructor
+* getDerivedStateFromProps
+* render
+* componentDidMount
+
+constructor：
+
+  组件的构造函数，第一个被执行，若没有显式定义它，会有一个默认的构造函数，但是若显式定义了构造函数，我们必须在构造函数中执行`super(props)`，否则无法在构造函数中拿到this。
+
+  如果不初始化 state 或不进行方法绑定，则不需要为 React 组件实现构造函数Constructor
+
+constructor中通常只做两件事：
+
+  初始化组件的 state
+
+  给事件处理方法绑定 this
+
+```js
+
+constructor(props) {
+  super(props);
+  // 不要在构造函数中调用 setState，可以直接给 state 设置初始值
+  this.state = { counter: 0 }
+  this.handleClick = this.handleClick.bind(this)
+}
+
+```
+
+---
+
+getDerivedStateFromProps:
+
+```js
+
+static getDerivedStateFromProps(props, state)
+
+```
+
+  这是个静态方法，所以不能在这个函数里使用 this，有两个参数 props 和 state，分别指接收到的新参数和当前组件的 state 对象，这个函数会返回一个对象用来更新当前的 state 对象，如果不需要更新可以返回 null。
+
+  该函数会在装载时，接收到新的 props 或者调用了 `setState` 和 `forceUpdate` 时被调用。如当接收到新的属性想修改 state ，就可以使用。
+
+  下面的代码可以显式传入`counter` ，但是这里有个问题，如果想要通过点击实现`state.counter` 的增加，但这时会发现值不会发生任何变化，一直保持 props 传进来的值。这是由于在 React 16.4^ 的版本中`setState`和 `forceUpdate` 也会触发这个生命周期，所以当组件内部 state 变化后，就会重新走这个方法，同时会把 state 值赋值为 props 的值。因此需要多加一个字段来记录之前的 props 值，这样就会解决上述问题。具体如下：
+
+```js
+
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      // 增加一个 preCounter 来记录之前的 props 传来的值
+      preCounter: 0,
+      counter: 0
+    }
+  }
+  static getDerivedStateFromProps(props, state) {
+    // 跟 state.preCounter 进行比较  if (props.counter !== state.counter) {
+    if (props.counter !== state.preCounter) {
+      return {
+        counter: props.counter,
+        preCounter: props.counter
+      }
+    }
+    return null
+  }
+  handleClick = () => {
+    this.setState({
+      counter: this.state.counter + 1
+    })
+  }
+  render() {
+    return (
+      <div>
+        <h1 onClick={this.handleClick}>Hello, world!{this.state.counter}</h1>
+      </div>
+    )
+  }
+}
+
+```
+
+---
+
+render:
+
+`render`是React 中最核心的方法，一个组件中必须要有这个方法，它会根据状态`state` 和属性 `props` 渲染组件。这个函数只做一件事，就是返回需要渲染的内容，所以不要在这个函数内做其他业务逻辑，通常调用该方法会返回以下类型中一个：
+
+  `React元素`：这里包括原生的 DOM 以及 React 组件；
+  
+  `数组和 Fragment（片段）`：可以返回多个元素；
+
+  `Portals（插槽）`：可以将子元素渲染到不同的 DOM 子树种；
+
+  `字符串和数字`：被渲染成 DOM 中的 text 节点；
+
+  `布尔值或 null`：不渲染任何内容。
+
+---
+
+componentDidMount:
+
+`componentDidMount()`会在组件挂载后（插入 DOM 树中）立即调。该阶段通常进行以下操作：
+
+  执行依赖于DOM的操作；
+
+  发送网络请求；（官方建议）
+
+  添加订阅消息（会在`componentWillUnmount`取消订阅）；
+
+如果在 `componentDidMount` 中调用 `setState` ，就会触发一次额外的渲染，多调用了一次 `render` 函数，由于它是在浏览器刷新屏幕前执行的，所以用户对此是没有感知的，但是我应当避免这样使用，这样会带来一定的性能问题，尽量是在 `constructor` 中初始化 `state` 对象。
+
+### 组件更新阶段
+
+当组件的 props 改变了，或组件内部调用了 setState/forceUpdate，会触发更新重新渲染，这个过程可能会发生多次。这个阶段会依次调用下面这些方法：
+
+* getDerivedStateFromProps
+* shouldComponentUpdate
+* render
+* getSnapshotBeforeUpdate
+* componentDidUpdate
+
+---
+
+shouldComponentUpdate:
+
+```js
+
+shouldComponentUpdate(nextProps, nextState)
+
+```
+
+两个特殊问题：
+
+setState 函数在任何情况下都会导致组件重新渲染吗？例如下面这种情况：
+
+```js
+
+this.setState({number: this.state.number})
+// 答：会
+
+```
+
+如果没有调用 setState，props 值也没有变化，是不是组件就不会重新渲染？
+
+答：如果是父组件重新渲染时，不管传入的 props 有没有变化，都会引起子组件的重新渲染。
+
+`shouldComponentUpdate`方法就是解决在这两个场景下不让组件重新渲染进而提升性能
+
+这个生命周期函数是用来提升速度的，它是在重新渲染组件开始前触发的，默认返回 true，可以比较 this.props 和 nextProps ，this.state 和 nextState 值是否变化，来确认返回 true 或者 false。当返回 false 时，组件的更新过程停止，后续的 `render`、`componentDidUpdate` 也不会被调用。
+
+注意 添加 shouldComponentUpdate 方法时，不建议使用深度相等检查（如使用 `JSON.stringify()`），因为深比较效率很低，可能会比重新渲染组件效率还低。而且该方法维护比较困难，建议使用该方法会产生明显的性能提升时使用。
+
+---
+
+getSnapshotBeforeUpdate:
+
+```js
+
+getSnapshotBeforeUpdate(prevProps, prevState)
+
+```
+
+这个方法在 render 之后，componentDidUpdate 之前调用，有两个参数 prevProps 和 prevState，表示更新之前的 props 和 state，这个函数必须要和 `componentDidUpdate` 一起使用，并且要有一个返回值，默认是 `null`，这个返回值作为第三个参数传给 componentDidUpdate。
+
+---
+
+componentDidUpdate:
+
+`componentDidUpdate()` 会在更新后会被立即调用，首次渲染不会执行此方法。 该阶段通常进行以下操作：
+
+  当组件更新后，对 DOM 进行操作；
+
+  如果你对更新前后的 props 进行了比较，也可以选择在此处进行网络请求；（例如，当 props 未发生变化时，则不会执行网络请求）。
+
+```js
+
+componentDidUpdate(prevProps, prevState, snapshot){}
+
+// prevProps: 更新前的props
+// prevState: 更新前的state
+// snapshot: getSnapshotBeforeUpdate()生命周期的返回值
+
+```
+
+### 组件卸载阶段
+
+卸载阶段只有一个生命周期函数，`componentWillUnmount()` 会在组件卸载及销毁之前直接调用。在此方法中执行必要的清理操作：
+
+  清除 timer，取消网络请求或清除
+
+  取消在`componentDidMount()`中创建的订阅等；
+
+这个生命周期在一个组件被卸载和销毁之前被调用，因此你不应该再这个方法中使用`setState`，因为组件一旦被卸载，就不会再装载，也就不会重新渲染。
+
+---
+
+### 错误处理阶段
+
+`componentDidCatch(error, info)`，此生命周期在后代组件抛出错误后被调用。 它接收两个参数∶
+
+  error：抛出的错误。
+  
+  info：带有 componentStack key 的对象，其中包含有关组件引发错误的栈信息
+
+---
+
+React常见生命周期的过程大致如下：
+
+* 挂载阶段，首先执行constructor构造方法，来创建组件
+* 创建完成之后，就会执行render方法，该方法会返回需要渲染的内容
+* 随后，React会将需要渲染的内容挂载到DOM树上
+* 挂载完成之后就会执行componentDidMount生命周期函数
+* 如果我们给组件创建一个props（用于组件通信）、调用setState（更改state中的数据）、调用forceUpdate（强制更新组件）时，都会重新调用render函数
+* render函数重新执行之后，就会重新进行DOM树的挂载
+* 挂载完成之后就会执行componentDidUpdate生命周期函数
+* 当移除组件时，就会执行componentWillUnmount生命周期函数
+
+React主要生命周期总结：
+
+1. getDefaultProps：这个函数会在组件创建之前被调用一次（有且仅有一次），它被用来初始化组件的 Props；
+2. getInitialState：用于初始化组件的 state 值；
+3. componentWillMount：在组件创建后、render 之前，会走到 componentWillMount 阶段。这个阶段我个人一直没用过、非常鸡肋。后来React 官方已经不推荐大家在 componentWillMount 里做任何事情、到现在 React16 直接废弃了这个生命周期，足见其鸡肋程度了；
+4. render：这是所有生命周期中唯一一个你必须要实现的方法。一般来说需要返回一个 jsx 元素，这时 React 会根据 props 和 state 来把组件渲染到界面上；不过有时，你可能不想渲染任何东西，这种情况下让它返回 null 或者 false 即可；
+5. componentDidMount：会在组件挂载后（插入 DOM 树中后）立即调用，标志着组件挂载完成。一些操作如果依赖获取到 DOM 节点信息，我们就会放在这个阶段来做。此外，这还是 React 官方推荐的发起 ajax 请求的时机。该方法和 componentWillMount 一样，有且仅有一次调用。

@@ -147,4 +147,77 @@ export default function applyMiddleware(...middlewares) {
 
 ### Redux 请求中间件如何处理并发
 
-使用redux-Sage 是一个管理redux应用异步操作的中间件，通过创建Sagas 将所有的异步操作
+使用redux-Sage 是一个管理redux应用异步操作的中间件
+
+通过创建Sagas 将所有的异步操作逻辑放在一个地方进行集中处理，以此将react中的同步操作与异步操作区分开来，以便后期的管理与维护
+
+```js
+
+// reddux-Sager如何处理并发
+// takeEvery 可以让多个sage任务并行被fork执行
+
+import {
+    fork,
+    take
+} from "redux-saga/effects"
+
+const takeEvery = (pattern, saga, ...args) => fork(function*() {
+    while (true) {
+        const action = yield take(pattern)
+        yield fork(saga, ...args.concat(action))
+    }
+})
+
+
+// takeLatest 不允许多个asga 任务并行 一旦接受到新的action，它就会取消前面所有的fork过的任务
+
+import {
+    cancel,
+    fork,
+    take
+} from "redux-saga/effects"
+
+const takeLatest = (pattern, saga, ...args) => fork(function*() {
+    let lastTask
+    while (true) {
+        const action = yield take(pattern)
+        if (lastTask) {
+            yield cancel(lastTask) // 如果任务已经结束，则 cancel 为空操作
+        }
+        lastTask = yield fork(saga, ...args.concat(action))
+    }
+})
+
+```
+
+## Hooks
+
+### 为什么 useState 要使用数组而不是对象
+
+es6的解构赋值
+
+```js
+
+const foo = [1, 2, 3];
+const [one, two, three] = foo;
+console.log(one); // 1
+console.log(two); // 2
+console.log(three); // 3
+
+```
+
+* 如果 useState 返回的是数组，那么使用者可以对数组中的元素进行命名，代码看起来也比较干净
+* 如果 useState 返回的是对象，在解构对象的时候必须要和 useState 内部返回的对象同名，想要多次的话，必须的设置别名才使用返回值
+
+```js
+
+// 第一次使用
+const { state, setState } = useState(false);
+// 第二次使用
+const { state: counter, setState: setCounter } = useState(0) 
+
+```
+
+总结：useState 返回的是数组而不是对象的原因就是为了降低使用的复杂度
+
+### React Hooks 解决了哪些问题？

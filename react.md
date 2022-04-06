@@ -1246,7 +1246,64 @@ react-router 实现的思想：
 1. 基于 history 库来实现上述不同的客户端路由实现思想，并且能够保存历史记录等，磨平浏览器差异，上层无感知
 2. 通过维护的列表，在每次 URL 发生变化的回收，通过配置的 路由路径，匹配到对应的 Component，并且 render
 
-### 
+### react-router 里的 Link 标签和 a 标签的区别
+
+从最终渲染的 DOM 来看，这两者都是链接，都是 标签
+
+区别：
+
+1. `<Link>`是react-router 里实现路由跳转的链接，一般配合`<Route>` 使用，react-router接管了其默认的链接跳转行为
+2. 区别于传统的页面跳转，`<Link>`的“跳转”行为只会触发相匹配的`<Route>`对应的页面内容更新，而不会刷新整个页面
+
+link 做了三件事
+
+* 有onclick那就执行onclick
+* click的时候阻止a标签默认事件
+* 根据跳转href(即是to)，用history (web前端路由两种方式之一，history & hash)跳转，此时只是链接变了，并没有刷新页面而<a>标签就是普通的超链接了，用于从当前页面跳转到href指向的另一 个页面(非锚点情况)
+
+a标签默认事件禁掉之后做了什么才实现了跳转
+
+```js
+
+let domArr = document.getElementsByTagName('a')
+[...domArr].forEach(item=>{
+    item.addEventListener('click',function () {
+        location.href = this.href
+    })
+})
+
+```
+### React-Router 4怎样在路由变化时重新渲染同一个组件？
+
+当路由变化时，即组件的props发生了变化，会调用componentWillReceiveProps等生命周期钩子。那需要做的只是： 当路由改变时，根据路由，也去请求数据：
+
+```jsx
+
+class NewsList extends Component {
+  componentDidMount () {
+     this.fetchData(this.props.location);
+  }
+  
+  fetchData(location) {
+    const type = location.pathname.replace('/', '') || 'top'
+    this.props.dispatch(fetchListData(type))
+  }
+  componentWillReceiveProps(nextProps) {
+     if (nextProps.location.pathname != this.props.location.pathname) {
+         this.fetchData(nextProps.location);
+     } 
+  }
+  render () {
+    ...
+  }
+}
+
+
+```
+
+利用生命周期componentWillReceiveProps，进行重新render的预处理操作
+
+
 
 
 

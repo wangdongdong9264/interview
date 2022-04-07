@@ -221,3 +221,30 @@ const { state: counter, setState: setCounter } = useState(0)
 总结：useState 返回的是数组而不是对象的原因就是为了降低使用的复杂度
 
 ### React Hooks 解决了哪些问题？
+
+1. 在组件之间复用状态逻辑很难
+
+可以使用hook从组件中提取状态逻辑，使得这些逻辑可以单独测试并复用。hook使我们在无需修改组件结构的情况下复用状态逻辑。这使得在组件间或社区共享hook变得更加便捷
+
+2. 复杂组件变得难以理解
+
+在组件中，每个生命周期常常包含一些不相关的逻辑，组件常常在 componentDidMount 和 componentDidUpdate 中获取数据。但是，同一个 componentDidMount 中可能也包含很多其它的逻辑，如设置事件监听，而之后需在 componentWillUnmount 中清除。相互关联且需要对照修改的代码被进行了拆分，而完全不相关的代码却在同一个方法中组合在一起。如此很容易产生 bug，并且导致逻辑不一致
+
+hook将组件中相互关联的部分拆成更小的函数，而非强制按照生命周期划分，还可以使用reducer 来管理组件内部的状态
+
+3. 难以理解的class
+
+必须理解js 中this的工作方式，还不能忘记绑定事件
+
+hook使你在非class的情况下可以使用更多的react 特性。无需学习复杂的函数式或响应式编程
+
+### React Hook 的使用限制有哪些
+
+1. 不要在循环，条件或嵌套函数中使用hook
+2. 在react的函数组件中调用hook
+
+为什么不要在循环、条件或嵌套函数中调用hook呢
+
+因为hooks的设计是基于数组实现。在调用时按顺序加入数组中，如果使用循环、条件或嵌套函数很有可能导致数组取值错位，执行错误的hooks。 实际上react的源码里不是数组，是链表
+
+### useEffect 与 useLayoutEffect 的区别

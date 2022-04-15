@@ -329,3 +329,60 @@ const TableDeail = ({
 可以使用 redux 等状态管理工具
 
 ### React Hooks 和生命周期的关系
+
+| class 组件      | Hooks 组件 |
+| constructor      | useState |
+| getDerivedStateFromProps      | useState 里面 update 函数 |
+| shouldComponentUpdate      | useMemo |
+| render      | 函数本身 |
+| componentDidMount      | useEffect |
+| componentDidUpdate      | useEffect |
+| componentWillUnmount      | useEffect 里面返回的函数 |
+| componentDidCatch      | 无 |
+| getDerivedStateFromError     | 无 |
+
+## 虚拟dom
+
+### 对虚拟 DOM 的理解？虚拟 DOM 主要做了什么？虚拟 DOM 本身是什么？
+
+本质上来说，virtual Dom是一个js对象，通过对象的方式来表达dom结构。将页面的状态抽象位js对象的形势，配合不同的渲染工具，使跨平台渲染成为可能。通过事务处理机制，将多次dom修改的结果一次性的更新到页面上，从而有效的减少页面渲染的次数，减少修改dom的重绘重排次数，提高渲染性能。
+
+虚拟dom是对dom的抽象，这个对象是更加轻量的对dom的描述，它设计最初目的，就是更好的跨平台，比如nodejs中没有dom，如果想实现ssr，那么就是借助虚拟dom，因为虚拟dom本身是js对象。在代码渲染到页面之前，vue/react会把代码转换成一个对象（虚拟dom）。以对象的形式来描述真实的dom结构，最终渲染到页面。在每次数据发生变化前，虚拟dom都会缓存一份，变化时，当前虚拟dom会与缓存的虚拟dom进行比较。在vue或者react内部封装了diff算法来比较变化，最后渲染变化的
+
+### 为什么要用 Virtual DOM
+
+1. 保证了性能下限，在不进行手动优化的情况下，提供过的去的性能
+2. 跨平台
+
+对比真实dom操作和 VDom操作
+
+* 真实dom：生成字符串模版 + 重建所有dom元素
+* VDom： 生成vNode + DOMDiff + 必要的dom更新
+
+Vdom的更新dom的准备工作消耗更多的时间，相比于更多dom操作消费是及其便宜的。
+
+Vdom本质上是js的对象，它可以很方便的跨平台操作，ssr，HybridApp
+
+### React diff 算法的原理是什么
+
+1. 真实的dom会映射为虚拟dom
+2. 虚拟dom变化后，计算差异生成patch
+3. 根据patch去更新真实的dom
+
+diff算法可以总结为三个策略，分别从树，组件以及元素
+
+* 策略1：忽略节点夸层级操作场景 基于树进行比较
+
+    即对树进行分层比较。即同一层次的节点进行比较，如果发现节点已经不存在了，则该节点及子节点会被完全删除掉，不会进行深入比较
+
+* 策略2: 如果如果组件的class一致，则默认为相识的树结构，否则默认为不同的树结构。基于组件对比
+
+    在组件对比的过程中，如果组件是同一类型则进行树比较，不是就放入布丁中。这也就是为什么 shouldComponentUpdate、PureComponent 及 React.memo 可以提高性能的原因
+
+* 策略3: 同一层级的子节点，可以通过标记key的方式进行列表对比。（基于节点进行对比）
+
+    在diff算法中react会借助元素的key值来判断该元素是新创建还是被移动的，从而减少不必要的渲染
+
+    react还需要借助key值来判断元素与本地状态的关联关系
+
+### 虚拟 DOM 的引入与直接操作原生 DOM 相比，哪一个效率更高，为什么

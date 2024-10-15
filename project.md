@@ -33,3 +33,10 @@ export function dataURLtoFile(dataurl, filename) {
 ## 工单组件
 
 ## 微前端改造
+
+## taro
+
+### 两个小程序合并
+
+
+### 小程序更新的api

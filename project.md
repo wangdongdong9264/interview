@@ -38,5 +38,21 @@ export function dataURLtoFile(dataurl, filename) {
 
 ### 两个小程序合并
 
+利用环境变量来区分,
 
-### 小程序更新的api
+app.config.js
+
+主要是page页面不同 `process.env.APP_TYPE == 'store' ? [] : []`
+
+```js
+config = {
+  pages: [].concat( mainPackage.concat([
+    // 相同的文件
+  ]))
+}
+
+```
+
+### 小程序最新的api
+
+使用原生模块（文档）
